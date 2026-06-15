@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>My experiment</title>
+  <script src="https://unpkg.com/jspsych@8.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-text@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-likert@2.0.0"></script>
+  <!-- load in the recall lists-->
+  <script src="https://unpkg.com/@jspsych/plugin-preload@2.0.0"></script>
+  <script src="stimuli/roediger_mcdermott_1995_appendix_word_list.js"></script>
+  <!-- This is for data storage - please be sure to keep this script in all future updates to the code!! -->
+  <script src="https://unpkg.com/@jspsych-contrib/plugin-pipe"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-text@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-fullscreen@2.1.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-audio-keyboard-response@2.1.1"></script>
+  <link href="https://unpkg.com/jspsych@8.0.0/css/jspsych.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body></body>
+<script>
+
+  /* initialize jsPsych */
+  //Will show a progress bar on top and will automatically update
+  var jsPsych = initJsPsych({
+    show_progress_bar: true,
+    auto_update_progress_bar: true,
+    on_finish: function () {
+      jsPsych.data.displayData();
+    }
+  });
+
+  /* create timeline */
+  var timeline = [];
+
+  //PLEASE KEEP FOR ALL FUTURE ITERATIONS
+  
+  //create a unique filename by combining a random string and a millisecond counter (to avoid duplicates)
+  var random_id = jsPsych.randomization.randomID(10);
+  const date = new Date();
+  random_id = "p" + random_id.toString();
+  var file_id = random_id + "_" + date.getTime().toString();
+  const filename = `${file_id}.csv`;
+  //also store the random id for convenience
+  jsPsych.data.addProperties({
+    random_id: random_id,
+  });
+
+//PLEASE KEEP FOR ALL FUTURE ITERATIONS
+
+//Makes the experiment full screen
+  var enter_fullscreen = {
+  type: jsPsychFullscreen,
+  fullscreen_mode: true
+};
+timeline.push(enter_fullscreen);
+
+  //preloading audio here
+  // var preload = {
+  //   type: jsPsychPreload,
+  //   audio: [
+  //    'stimuli/Cogs 119 List 1.wav', 
+  //   'stimuli/Cogs 119 List 2.wav', 
+  //   'stimuli/Cogs 119 List 3.wav', 
+  //   'stimuli/Cogs 119 List 4.wav', 
+  //   'stimuli/Cogs 119 List 5.wav',
+  //   'stimuli/Cogs 119 List 6.wav'
+  // ]
+  // };
+  // timeline.push(preload);
+
+  //Welcome message
+  var welcome = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: "Welcome to the False Recall experiment. <p>Press any key to begin.</p>"
+  };
+
+  timeline.push(welcome)
+
+  // var memory_lists = [
+  //   { list: 1,
+  //     audio: "stimuli/Cogs 119 List 1.wav"},
+  //   { list: 2,
+  //     audio: "stimuli/Cogs 119 List 2.wav"},
+  //   { list: 3, 
+  //     audio: "stimuli/Cogs 119 List 3.wav"},
+  //   { list: 4,
+  //     audio: "stimuli/Cogs 119 List 4.wav"},
+  //   { list: 5,
+  //     audio: "stimuli/Cogs 119 List 5.wav"},
+  //   { list: 6,
+  //     audio: "stimuli/Cogs 119 List 6.wav"},
+  //   ];
+
+  //Test Blocks for each list including he word condition
+  var lists_array = [
+    {
+      list: 1,
+      studied: ["Table", "Couch"],
+      critical: "Chair",
+      weak: ["Floor", "Cushion"],
+      unrelated: ["Ball","Shoe"],
+      audio: "stimuli/Cogs 119 List 1.wav"
+    },
+    {
+      list: 2,
+      studied: ["Hill", "Peak"],
+      critical: "Mountain",
+      weak: ["Snow", "Hike"],
+      unrelated: ["Car","Draw"],
+      audio: "stimuli/Cogs 119 List 2.wav"
+    },
+    {
+      list: 3,
+      studied: ["Thread", "Pin"],
+      critical: "Needle",
+      weak: ["Stitch", "Splinter"],
+      unrelated: ["Stop","Fast"],
+      audio: "stimuli/Cogs 119 List 3.wav"
+    },
+    {
+      list: 4,
+      studied: ["Smooth", "Touch"],
+      critical: "Rough",
+      weak: ["Spike", "Chalk"],
+      unrelated: ["Key","Project"],
+      audio: "stimuli/Cogs 119 List 4.wav"
+    },
+    {
+      list: 5,
+      studied: ["Bed", "Tired"],
+      critical: "Sleep",
+      weak: ["Coma", "Calm"],
+      unrelated: ["Fish","Chess"],
+      audio: "stimuli/Cogs 119 List 5.wav"
+    },
+    {
+      list: 6,
+      studied: ["Sour", "Sugar"],
+      critical: "Sweet",
+      weak: ["Cherry", "Salty"],
+      unrelated: ["Door","Ghost"],
+      audio: "stimuli/Cogs 119 List 6.wav"
+    },
+  ];  
+  
+//Randomizes the order of the list of words
+   var randomized_lists = jsPsych.randomization.shuffle(lists_array); 
+   var lists_length = randomized_lists.length;
+
+ // survey for participant id
+ var participant_id_entry = {
+   type: jsPsychSurveyText,
+   questions: [{ prompt: "Please enter your participant ID (e.g. p1):", name: "participant_id" }]
+ };
+
+timeline.push(participant_id_entry);
+
+
+  //add general instructions
+  var instructions = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus:
+      `<p>Listen to the following words. Do your best to memorize as many words as accurately as possible.<p>
+      <p>The first trial will begin after this screen<p>
+        <p> Press any key to continue<p> 
+   `
+  };
+
+  //push recall instructions
+  timeline.push(instructions)
+
+  //for loop for trials
+  //contains list stimulus, free recall, and gap 
+   for (let i = 0; i < lists_length; i++) {
+    //get one of the lists
+    var current_list = randomized_lists[i];
+    console.log(current_list);
+    var trial = {
+      type: jsPsychAudioKeyboardResponse,
+      stimulus: current_list.audio,
+      choices: "NO_KEYS",
+      trial_ends_after_audio: true,
+      post_trial_gap: 1000
+    }
+
+//Collects participants' free recall responses after hearing the given words
+    var free_recall = {
+      type: jsPsychSurveyText,
+      data: { task: "free_recall" },
+      preamble:`
+        <p>Please write down every word you remember being in the list given.
+         Only write the word if you are fairly confident it was present. 
+         You do not need to write them in the order they were stated <p>
+          <p> Once you complete this page, the next list will begin playing automatically<p>  `,
+      questions: [
+        { 
+        prompt:"word 1"
+      },{
+        prompt:"word 2"
+      },{
+        prompt:"word 3"
+      },{
+        prompt:"word 4"
+      },{
+        prompt:"word 5"
+      },{
+        prompt:"word 6"
+      },{
+        prompt:"word 7"
+      },{
+        prompt:"word 8"
+      },{
+        prompt:"word 9"
+      },{
+        prompt:"word 10"
+      },{
+        prompt:"word 11"
+      },{
+        prompt:"word 12"
+      },{
+        prompt:"word 13"
+      },{
+        prompt:"word 14"
+      },{
+        prompt:"word 15"
+      }
+    ]
+
+    };
+
+     timeline.push(trial);
+     timeline.push(free_recall);
+     
+  }
+ 
+  //instructuons for recognition
+  var recognition_intro = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus:
+      `<p>You will now receive another test.<p> 
+      <p>Here you will be shown a series of words that you may have seen previously.<p> 
+      <p>Your task is to rate your confidence of seeing these words on a 4 point scale<p>
+      <p>Definitely new<p> 
+      <p>Maybe new<p>
+      <p>Maybe seen before<p>
+      <p>Definitely seen before<p>
+      <p>Press any key to continue<p> 
+   ` };
+
+  //push recognition test intructions
+  timeline.push(recognition_intro);  
+
+  //Make the 7 word test blocks for each list
+  var recognition_blocks = [];
+
+  randomized_lists.forEach(function(listObj){
+    //First studied work - 5 randomized from second sudied, weakly related, and unrelated - critical lure
+    
+    //First Studied word
+    var first_word = {
+      word: listObj.studied[0],
+      condition: "studied",
+      list: listObj.list
+    };
+
+    //second studied word
+    var studied_second = {
+      word: listObj.studied[1],
+      condition: "studied",
+      list: listObj.list
+    };
+
+    //weakly related words
+    var weak_words = listObj.weak.map(w =>({
+      word: w,
+      condition: "weakly related",
+      list: listObj.list
+    }));
+    
+    //unrelated words
+    var unrelated_words = listObj.unrelated.map(w => ({
+      word: w,
+      condition: "unrelated",
+      list: listObj.list
+    }));
+
+    //critical lure
+    var critical_word = {
+      word: listObj.critical,
+      condition: "critical",
+      list: listObj.list
+    };
+
+    //Randomize middle
+    var middle_items = [
+      studied_second,
+      ...weak_words,
+      ...unrelated_words
+    ];
+
+// Randomize the word order with each block
+    middle_items = jsPsych.randomization.shuffle(middle_items);
+
+    var block = [
+      first_word,
+      ...middle_items,
+      critical_word
+    ];
+    block = jsPsych.randomization.shuffle(block);
+    recognition_blocks.push(block);
+  });
+
+// Attention check during recognition test
+    var attention_item = {
+      word: "Click: Definitely New",
+      condition: "attention_check",
+      list: "none"
+    };
+
+    var random_block_index = Math.floor(Math.random() * recognition_blocks.length);
+    recognition_blocks[random_block_index].push(attention_item);
+
+// Recognition test where participants rate each word
+var recognition_trial = {
+  type: jsPsychSurveyLikert,
+  questions: function() {
+    return [
+      {
+        prompt: function(){
+          var word = jsPsych.evaluateTimelineVariable("word");
+          return "<h2>" + word + "</h2>";
+        },
+        labels: [
+          "Definitely New",
+          "Probably New",
+          "Probably Studied",
+          "Definitely Studied"
+        ],
+        required: true
+      }
+    ];
+  },
+  data: {
+    word: jsPsych.timelineVariable("word"),
+    condition: jsPsych.timelineVariable("condition"),
+    list: jsPsych.timelineVariable("list"),
+    task: "recognition"
+  },
+};
+
+  //push test blocks to match trial 
+  //STILL NEED TO MATCH THE LIST RANDOMIZATION
+  recognition_blocks.forEach(function(block){
+    timeline.push({
+      timeline: [recognition_trial],
+      timeline_variables: block
+    });
+  });
+
+  var recognition_critical_lures = {
+    type: jsPsychSurveyLikert,
+    questions: [
+      {
+        prompt: "Was 'chair' in the list you heard?",
+        labels: ["yes", "no"],
+        required: true
+      },
+      {
+        prompt: "Was 'mountain' in the list you heard?",
+        labels: ["yes", "no"],
+        required: true
+      },
+      {
+        prompt: "Was 'needle' in the list you heard?",
+        labels: ["yes", "no"],
+        required: true
+      },
+      {
+        prompt: "Was 'rough' in the list you heard?",
+        labels: ["yes", "no"],
+        required: true
+      },
+      {
+        prompt: "Was 'sleep' in the list you heard?",
+        labels: ["yes", "no"],
+        required: true
+      },
+      {
+        prompt: "Was 'sweet' in the list you heard?",
+        labels: ["yes", "no"],
+        required: true
+      }
+    ],
+  button_label: "→"
+  };
+  timeline.push(recognition_critical_lures);
+  
+ // Bonus Speed Memory Game, where participants press S for studied words and N for Not Studied words 
+  timeline.push({
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: `
+    <h2>Speed Memory Game</h2>
+    <p>Press <strong>S</strong> if the word was studied.</p>
+    <p>Press <strong>N</strong> if it was NOT studied.</p>
+    <p>Respond as quickly as possible. (Please note it may be case sensitive)</p>
+    <p>Press any key to begin.</p>
+  `
+});
+//Combines words for the speed game
+var studied_words = [];
+var lure_words = [];
+
+randomized_lists.forEach(function(list){
+  studied_words = studied_words.concat(list.studied);
+  lure_words.push(list.critical);
+});
+
+var game_words = jsPsych.randomization.shuffle(
+  studied_words.concat(lure_words)
+);
+
+// Speed Game Attention Check
+var random_index = Math.floor(Math.random() * game_words.length);
+game_words.splice(random_index, 0, "S");
+  
+var last_correct = false;  
+  
+//Presents the word and records particpants accuracy
+game_words.forEach(function(word){
+
+  // Hidden speed attention check click N for correct answer
+  if(word === "S"){
+    timeline.push({
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: "<h1>Click N</h1>",
+      choices: ["s","n"],
+      data: { task: "speed_attention_check" },
+      on_finish: function(data){
+        var response_key = data.response.toLowerCase();
+        data.correct = (response_key === "n"); 
+      }
+    });
+    return; 
+  }
+  
+  var correct_answer = studied_words.includes(word) ? "s" : "n";
+
+  //Displays participants' overall accuracy in the speed game
+ timeline.push({
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: "<h1>" + word + "</h1>",
+    choices: ["s","n"],
+    prompt: "<p>Press <strong>S</strong> if the word was studied. Press <strong>N</strong> if it was NOT studied.</p>",
+    data: {
+      task: "speed_game",
+      word: word,
+      correct_answer: correct_answer
+    },
+    on_finish: function(data){
+      var response_key = data.response.toLowerCase();
+      last_correct = (response_key === correct_answer);
+      data.correct = last_correct;
+    }
+  });
+
+  //WILL FLASH RED FOR WRONG AND GREEN FOR CORRECT
+  timeline.push({
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: function(){
+      return last_correct
+        ? "<h2 style='color:green;'>Correct! </h2>"
+        : "<h2 style='color:red;'>Wrong </h2>";
+    },
+    choices: "NO_KEYS",
+    trial_duration: 800
+  });
+
+});
+  
+timeline.push({
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: function(){
+
+    var d = jsPsych.data.get().filter({task: "speed_game"});
+    var acc = Math.round(d.filter({correct:true}).count() / d.count() * 100);
+    var rt = Math.round(d.select("rt").mean());
+
+    return `
+      <h2>Game Results</h2>
+      <p>Accuracy: ${acc}%</p>
+      <p>Average RT: ${rt} ms</p>
+      <p>Press any key to continue.</p>
+    `;
+  }
+});
+
+ //Collects participants' feedback about their experience during the experiment
+  var feedback = {
+    type: jsPsychSurveyText,
+    preamble: "<p>Thank you for participating!</p>",
+    questions: [
+      {
+        prompt: "What do you think this experiment was about?",
+          rows: 4,
+          required: true },
+      {
+        prompt: "How did you feel while completing the experiment?",
+          rows: 3,
+          required: true },
+      {
+        prompt: "Did you find the tasks easy, moderately challenging, or extremely difficult to complete? Please explain why.",
+          rows: 5,
+          required: true },
+      {
+        prompt: "Did you experience any technical issues? If so, please explain what issues you experienced.",
+          rows: 3,
+          required: true },
+      {
+        prompt: "Do you have any additional comments or feedback about your experience with the experiment?",
+          rows: 4,
+          required: true }
+    ]
+  };
+
+timeline.push(feedback);
+  
+  //PLEASE KEEP FOR ALL FUTURE ITERATIONS
+  //this portion of the code ensures that the data gets sent to be stored on OSF
+  const save_data = {
+    type: jsPsychPipe,
+    action: "save",
+    experiment_id: "G6o3Tqm4buni",
+    filename: filename,
+    data_string: () => jsPsych.data.get().csv()
+  };
+  timeline.push(save_data);
+  //PLEASE KEEP FOR ALL FUTURE ITERATIONS
+
+  //Debrief screen explaining the purpose of this experiment
+  var debrief = {
+    type: jsPsychHtmlButtonResponse,
+    stimulus: `
+      <h2>About This Experiment</h2>
+      <p>This experiment examined false memory using the Deese-Roediger-McDermott paradigm.</p>
+      <p>Throughout this experiment, participants heard a list of words (for example: bed, mountain, needle, smooth)
+      and were tested on the correct number of words they were able to list.</p>
+      <p>In which many participants will falsely remember hearing a word that was not in the given list.</p>
+      <p>This will demonstrate how memory is easily influenced by semantic associations.</p>
+      <p>Thank you for participating in our study!</p>
+    `,
+    choices: ["Finish"]
+  };
+
+  timeline.push(debrief);
+      
+
+
+  /* start the experiment */
+  jsPsych.run(timeline);
+
+
+</script>
+
+</html>
